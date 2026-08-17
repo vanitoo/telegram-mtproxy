@@ -1,0 +1,19 @@
+services:
+  mtproxy:
+    build: .
+    container_name: mtproxy
+    restart: unless-stopped
+
+    ports:
+      - "${PORT:-443}:${PORT:-443}/tcp"
+
+    environment:
+      PORT: "${PORT:-443}"
+      STATS_PORT: "${STATS_PORT:-2398}"
+      DOMAIN: "${DOMAIN:-www.cloudflare.com}"
+      WORKERS: "${WORKERS:-1}"
+      EXTERNAL_IP: "${EXTERNAL_IP:-}"
+      PROXY_TAG: "${PROXY_TAG:-}"
+
+    volumes:
+      - ./data:/data
