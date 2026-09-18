@@ -1,0 +1,15 @@
+name: MTProxy checks
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash -n entrypoint.sh install.sh docker_update.sh
+      - run: cp .env.example .env && docker compose config --quiet
