@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-#git pull
+git pull --ff-only
 docker compose up -d --build
 
 sleep 3

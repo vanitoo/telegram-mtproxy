@@ -10,6 +10,18 @@ Docker-обёртка для официального [Telegram MTProxy](https:/
 
 ## Быстрый запуск
 
+### Автоматическая установка
+
+На сервере с установленными Docker Engine, Docker Compose v2, Git и curl выполните:
+
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/vanitoo/telegram-mtproxy/refs/heads/main/install.sh)
+```
+
+Установщик клонирует проект в `/opt/telegram-mtproxy`, создаст `.env` при первом запуске, попробует определить публичный IPv4 и запустит MTProxy. Повторный запуск сохраняет существующие `.env` и `data/`, обновляет Git-репозиторий и пересобирает контейнер.
+
+### Ручная установка
+
 Скопируйте пример настроек:
 
 ```bash
