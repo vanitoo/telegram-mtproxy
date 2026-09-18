@@ -305,6 +305,43 @@ docker compose up -d
 
 ---
 
+## 🤖 Управление персональными secret из VPN-бота
+
+Проект поддерживает второй источник client secret: общий Docker volume
+`warp-mtproto-control-data`. VPN-бот и внутренний `mtproto-control` записывают туда:
+
+```text
+active_secrets.txt
+active_secrets.applied.sha256
+```
+
+`entrypoint.sh` следит за `active_secrets.txt`. При изменении он валидирует весь
+manifest, перезапускает только дочерний процесс `mtproto-proxy` с актуальным набором
+`-S <secret>` и после успешного запуска записывает SHA-256 manifest в
+`active_secrets.applied.sha256`.
+
+Старый `data/secret` по умолчанию остаётся активным, поэтому уже выданная общая
+ссылка продолжает работать. Отключить её можно только осознанно:
+
+```dotenv
+LEGACY_SECRET_ENABLED=false
+```
+
+При изменении managed-secret возможен короткий reconnect существующих MTProxy
+соединений. Полный Docker container при этом не пересоздаётся.
+
+Для интеграции с `vanitoo/vpn_manager` оба Compose-проекта используют один named
+volume:
+
+```text
+warp-mtproto-control-data
+```
+
+Не редактируйте `active_secrets.txt` вручную при работающем controller: источником
+истины для управляемых пользователей является `mtproto-control/users.json`.
+
+---
+
 ## 📦 Ручная установка
 
 Если one-click installer не нужен:
