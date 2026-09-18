@@ -65,6 +65,8 @@ docker compose logs mtproxy | grep -o 'tg://proxy?[^[:space:]]*' | tail -n 1
 
 `STATS_PORT` не публикуется на хост в текущем `docker-compose.yml`.
 
+Логи контейнера используют драйвер `json-file` с ротацией: до `10m` на файл и до `3` файлов.
+
 ## Управление
 
 Показать состояние и логи:
