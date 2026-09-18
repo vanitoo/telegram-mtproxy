@@ -25,7 +25,8 @@ COPY --from=builder /src/objs/bin/mtproto-proxy /usr/local/bin/mtproto-proxy
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh && \
-    mkdir -p /data && \
-    chown -R mtproxy:mtproxy /data
+    mkdir -p /data /control && \
+    chown -R mtproxy:mtproxy /data && \
+    chown 10001:10001 /control
 
 ENTRYPOINT ["/entrypoint.sh"]
