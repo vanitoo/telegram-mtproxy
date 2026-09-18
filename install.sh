@@ -6,6 +6,10 @@ BRANCH="${BRANCH:-main}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/telegram-mtproxy}"
 CONTAINER_NAME="mtproxy"
 
+ENABLE_DAILY_REFRESH="${ENABLE_DAILY_REFRESH:-1}"
+CRON_SCHEDULE="${CRON_SCHEDULE:-15 4 * * *}"
+CRON_MARKER="# telegram-mtproxy-refresh"
+
 echo "[MTProxy] One-click installer"
 
 for cmd in git docker curl; do
@@ -81,6 +85,51 @@ if [[ "$STATUS" != "running" ]]; then
     docker compose logs --tail=200 mtproxy || true
     exit 1
 fi
+
+install_daily_refresh() {
+    if [[ "$ENABLE_DAILY_REFRESH" != "1" ]]; then
+        echo "[MTProxy] Daily Telegram config refresh is disabled"
+        return
+    fi
+
+    local docker_bin install_dir_q docker_bin_q cron_command
+    docker_bin="$(command -v docker)"
+    install_dir_q="$(printf '%q' "$INSTALL_DIR")"
+    docker_bin_q="$(printf '%q' "$docker_bin")"
+    cron_command="cd $install_dir_q && $docker_bin_q compose restart mtproxy >/dev/null 2>&1"
+
+    if [[ "${EUID}" -eq 0 ]]; then
+        cat > /etc/cron.d/telegram-mtproxy <<EOF
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+$CRON_SCHEDULE root $cron_command $CRON_MARKER
+EOF
+        chmod 0644 /etc/cron.d/telegram-mtproxy
+
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable --now cron >/dev/null 2>&1 ||
+                systemctl enable --now crond >/dev/null 2>&1 ||
+                true
+        fi
+
+        echo "[MTProxy] Daily Telegram config refresh installed in /etc/cron.d/telegram-mtproxy"
+        echo "[MTProxy] Schedule: $CRON_SCHEDULE"
+    elif command -v crontab >/dev/null 2>&1; then
+        local existing
+        existing="$(crontab -l 2>/dev/null || true)"
+        {
+            printf '%s\n' "$existing" | sed "/${CRON_MARKER//\//\\/}$/d"
+            printf '%s %s %s\n' "$CRON_SCHEDULE" "$cron_command" "$CRON_MARKER"
+        } | crontab -
+
+        echo "[MTProxy] Daily Telegram config refresh installed in the current user's crontab"
+        echo "[MTProxy] Schedule: $CRON_SCHEDULE"
+    else
+        echo "[MTProxy] WARNING: cron/crontab is not available; daily refresh was not installed"
+    fi
+}
+
+install_daily_refresh
 
 echo
 echo "[MTProxy] Telegram link:"
