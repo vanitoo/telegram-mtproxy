@@ -14,12 +14,20 @@ services:
       WORKERS: "${WORKERS:-1}"
       EXTERNAL_IP: "${EXTERNAL_IP:-}"
       PROXY_TAG: "${PROXY_TAG:-}"
+      CONTROL_DIR: "/control"
+      LEGACY_SECRET_ENABLED: "${LEGACY_SECRET_ENABLED:-true}"
+      SECRET_RELOAD_INTERVAL: "${SECRET_RELOAD_INTERVAL:-1}"
 
     volumes:
       - ./data:/data
+      - mtproto-control-data:/control
 
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  mtproto-control-data:
+    name: warp-mtproto-control-data
